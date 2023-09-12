@@ -8,7 +8,7 @@ from googleapiclient.errors import HttpError
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-SPREADSHEET_ID = '19yX8bA8PFHLCda0KZE_xvj-J6A6WouJs-BCK3AQIsiE'
+SPREADSHEET_ID = ''
 
 
 def main():
