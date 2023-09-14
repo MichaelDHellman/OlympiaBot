@@ -1,4 +1,7 @@
 import os.path
+import client
+import json
+import logging 
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -6,11 +9,21 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+creds = "./credentials/credentials.json"
+fpath = "./credentials/token.json"
 
-SPREADSHEET_ID = ''
+def main():
+    outFile = logging.FileHandler(filename="log.txt", encoding="utf-8", mode='w')
+    tokens = {}
+    oClient = client.olympiaClient(fpath)
+    print(oClient.tokens)
+    oClient.run(oClient.tokens["TOKEN"], log_handler=outFile, log_level=logging.WARNING)
+    
+if __name__ == "__main__":
+    main()
 
 
+"""
 def main():
     creds = None
     if os.path.exists('token.json'):
@@ -30,7 +43,7 @@ def main():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+        result = sheet.values().get(spreadsheetId=,
                                     range="Master!").execute()
         values = result.get('values', [])
 
@@ -48,3 +61,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+"""
