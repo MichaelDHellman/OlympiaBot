@@ -57,7 +57,9 @@ class olympiaClient(discord.Client):
         for p in self.sheetData:
             if p[2].lower() not in present:
                 missing.append(p)
-        self.mailAbsentees([["Michael Hellman", "michaelhellmaniii@gmail.com", "glassshatter", "Blue"]])
+        print(missing)
+
+        self.mailAbsentees(missing)
         
                 
     def googleAuth(self):
@@ -100,11 +102,14 @@ class olympiaClient(discord.Client):
             print("HTTP ERROR")
     
     async def updateRoles(self):
-        sheetNames = ["glassshatter"]
-        #for p in self.sheetData:
-        #    sheetNames.append(p[2])
+        sheetNames = []
+        for p in self.sheetData:
+            sheetNames.append(p[2])
+        
         mailedTo = {}
         present = [m for m in self.server.members if m.name in sheetNames]
+        print(present)
+
         with open("sentto.json", 'r') as sent:
             mailedTo = json.load(sent)
             for i, m in enumerate(present):
@@ -155,13 +160,13 @@ class olympiaClient(discord.Client):
 
     
     async def messagePresents(self):
-        sheetNames = ["glassshatter"]
-        #for p in self.sheetData:
-        #    sheetNames.append(p[2])
+        sheetNames = [] #MESSAGING BLOCKED
+        for p in self.sheetData:
+            sheetNames.append(p[2])
 
         mailedTo = {}
         present = [m for m in self.server.members if m.name in sheetNames]
-
+        print(present)
         with open("sentto.json", 'r') as sent:
             mailedTo = json.load(sent)
             for i, m in enumerate(present):
@@ -169,7 +174,7 @@ class olympiaClient(discord.Client):
                     continue
                 mailedTo["discord"].append(m.name)
                 if self.sheetData[i][3] != "No Preference":
-                    await m.send("Hello, and welcome to ACM Olympics! You have been placed on the " + self.sheetData[i][3] + " team! If this is your first Olympics, thanks for joining us this year, we're going to have a great time!")
+                    await m.send("Hello, and welcome to ACM Olympics! You have been placed on the " + self.sheetData[i][3] + ":" + self.sheetData[i][3].lower() + "_square: team! If this is your first Olympics, thanks for joining us this year, we're going to have a great time!")
                     events = self.sheetData[i][4].split(", ")
                     eventsString = ""
                     for e in events:
