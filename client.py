@@ -6,6 +6,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email.mime.text import MIMEText
 
+import asyncio
 import base64
 import discord
 import os
@@ -109,20 +110,26 @@ class olympiaClient(discord.Client):
             for i, m in enumerate(present):
                 if m.name in mailedTo["discord"]:
                     continue
+                print("adding roles to " + m.name)
                 if self.sheetData[i][3] == "Red":
-                    await m.add_roles([self.server.get_role(1024692661917065256)])
-                    await m.remove_roles([self.server.get_role(1024693348730155070), self.server.get_role(1024692666832781322), self.server.get_role(1024693270175039539)])
+                    print("adding red")
+                    await m.add_roles(self.server.get_role(1024692661917065256))
+                    await m.remove_roles(self.server.get_role(1024693348730155070), self.server.get_role(1024692666832781322), self.server.get_role(1024693270175039539))
                 if self.sheetData[i][3] == "Blue":
-                    await m.add_role([self.server.get_role(1024693348730155070)])
-                    await m.remove_roles([self.server.get_role(1024692661917065256), self.server.get_role(1024692666832781322), self.server.get_role(1024693270175039539)])
+                    print("adding Blue")
+                    await m.add_roles(self.server.get_role(1024693348730155070))
+                    await m.remove_roles(self.server.get_role(1024692661917065256), self.server.get_role(1024692666832781322), self.server.get_role(1024693270175039539))
                 if self.sheetData[i][3] == "Yellow":
-                    await m.add_role([self.server.get_role(1024692666832781322)])
-                    await m.remove_roles([self.server.get_role(1024692661917065256), self.server.get_role(1024693348730155070), self.server.get_role(1024693270175039539)])
+                    print("adding yellow")
+                    await m.add_roles(self.server.get_role(1024692666832781322))
+                    await m.remove_roles(self.server.get_role(1024692661917065256), self.server.get_role(1024693348730155070), self.server.get_role(1024693270175039539))
                 if self.sheetData[i][3] == "Green":
-                    await m.add_role([self.server.get_role(1024693270175039539)])
-                    await m.remove_roles([self.server.get_role(1024692661917065256), self.server.get_role(1024693348730155070), self.server.get_role(1024692666832781322)])
-                await m.add_role(self.server.get_role(1088654298012987422))
+                    print("adding green")
+                    await m.add_roles(self.server.get_role(1024693270175039539))
+                    await m.remove_roles(self.server.get_role(1024692661917065256), self.server.get_role(1024693348730155070), self.server.get_role(1024692666832781322))
+                await m.add_roles(self.server.get_role(1088654298012987422))
                 await asyncio.sleep(2)
+                print("added roles")
 
 
     def mailAbsentees(self, absenteeList):
