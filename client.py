@@ -50,6 +50,8 @@ class olympiaClient(discord.Client):
         await self.updateRoles()
         await self.messagePresents()
         
+    def mailAllParticipants(self):
+        self.mailParticipants()
 
     def mailMissingParticipants(self):
         present = [m.name for m in self.server.members]
@@ -59,7 +61,7 @@ class olympiaClient(discord.Client):
                 missing.append(p)
         print(missing)
 
-        self.mailAbsentees(missing)
+        self.mailParticipants(missing)
         
                 
     def googleAuth(self):
@@ -96,7 +98,7 @@ class olympiaClient(discord.Client):
                 print("Failed to retrieve values from spreadsheet")
                 return
             else:
-                self.sheetData = sheetDataTemp[2:]
+                self.sheetData = sheetDataTemp[1:]
             
         except HttpError as err:
             print("HTTP ERROR")
@@ -136,33 +138,78 @@ class olympiaClient(discord.Client):
                 await asyncio.sleep(2)
                 print("added roles")
 
-
-    def mailAbsentees(self, absenteeList):
+    def mailParticipants(self):
         service = build('gmail', 'v1', credentials=self.gCreds)
         sent = open("sentto.json", 'r')
         mailedTo = json.load(sent)
         sent.close()
-        for a in absenteeList:
-            if a[1] in mailedTo["email"]:
+        for p in self.sheetData:
+            if p[1] in mailedTo["email"]:
                 continue
-            mailedTo["email"].append(a[1])
-            message = MIMEText("Hi, " + a[0] + ", we're so glad you are planning to attend ACM Olympics. Before the events begin, we noticed you hadn't joined the ACM Discord server. To partcipate we need you to join using this link " + self.tokens["INVITE"] +". Please do so now. We can't wait to see you at Olympics! \n\n Sincerely, \n  The ACM Events Team")
-            message['Subject'] = "Welcome to ACM Olympics! <ACTION REQUIRED>"
-            print(a[1])
-            message['To'] = a[1]
+            mailedTo["email"].append(p[1])
+            tmpMessage = "Hi, " + p[0] + ", we're so glad you are planning to attend ACM Olympics. Before the events begin, make sure to join the ACM official Discord server. To partcipate we need you to join using this link " + self.tokens["INVITE"] +". Please do so now, if you haven't already. \nAll information about ACM Olympics will be posted to the \"Olympics\" channel in that Discord. \n\n You have been placed on the {} Team! Introduce yourself in the channel for your team color when you get the chance \n For your reference, here's a list of all of the events you signed up for! \n\n".format(p[3])
+            if p[3] != "No Preference":
+                events = p[4].split(", ")
+                eventsString = ""
+                for e in events:
+                    if ("Opening" in e):
+                        eventsString = eventsString + "Opening Ceremony | 4:00 PM to 5:00 PM | Friday | TI Auditorium\n\n"
+                        continue
+                    if ("Typing" in e):
+                        eventsString = eventsString + "Typing | 5:30 PM to 6:30 PM | Friday | TI Auditorium\n\n"
+                        continue
+                    if ("Trivia" in e):
+                        eventsString = eventsString + "Trivia | 7:00 PM to 8:00 PM | Friday | TI Auditorium\n\n"
+                        continue
+                    if ("Soccer" in e):
+                        eventsString = eventsString + "Soccer | 8:15 PM to 10:15 PM | Friday | Soccer Field 9\n\n"
+                        continue
+                    if ("Programming" in e):
+                        eventsString = eventsString + "Partner Programming | 1:00 PM to 2:00 PM | Saturday | TI Auditorium\n\n"
+                        continue
+                    if ("Event Rush" in e):
+                        eventsString = eventsString + "Event Rush | 3:00 PM to 5:00 PM | Saturday | SCI Courtyard\n\n"
+                        continue
+                    if ("Mystery" in e):
+                        eventsString = eventsString + "Mystery Event | 5:30 PM to 6:30 PM | Saturday | TI Auditorium\n\n"
+                        continue
+                    if ("Table" in e):
+                        eventsString = eventsString + "Table Tennis | 6:30 PM to 7:30 PM | Saturday | SU 1st Floor\n\n"
+                        continue
+                    if ("Smash" in e):
+                        eventsString = eventsString + "Smash Bros | 7:45 PM to 9:45 PM | Saturday | TI Auditorium\n\n"
+                        continue
+                    if ("Chess" in e):
+                        eventsString = eventsString + "Chess | 10:30 AM to 12:00 PM | Sunday | TI Auditorium\n\n"
+                        continue
+                    if ("Basketball" in e):
+                        eventsString = eventsString + "Basketball | 1:00 PM to 3:00 PM | Sunday | Courts South of UREC\n\n"
+                        continue
+                    if ("Water" in e):
+                        eventsString = eventsString + "WATER BALLOON FIGHT | 4:00 PM to 5:00 PM | Sunday | SCI Courtyard\n\n"
+                        continue
+                    if ("Closing" in e):
+                        eventsString = eventsString + "Closing Ceremony | 6:00 PM to 7:00 PM | Sunday | TI Auditorium\n\n"
+                        continue
+                    
+            tmpMessage = tmpMessage + eventsString
+            tmpmessage = tmpMessage + "\n We can't wait to see you at Olympics! \n\n Sincerely, \n  The ACM Events Team"
+            message = MIMEText(tmpMessage)
+            message['Subject'] = "Welcome to ACM Olympics! <PLEASE READ>"
+            print(p[1])
+            message['To'] = p[1]
             created_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
             try:
                 message = (service.users().messages().send(userId="me", body=created_message).execute())
             except HttpError as error:
                 print(error)
         with open("sentto.json", 'w') as f:
-            json.dump(mailedTo, f)
-
+            json.dump(mailedTo, f) 
     
     async def messagePresents(self):
         sheetNames = [] #MESSAGING BLOCKED
         for p in self.sheetData:
-            sheetNames.append(p[2])
+            sheetNames.append(p[2].lower())
 
         mailedTo = {}
         present = [m for m in self.server.members if m.name in sheetNames]
@@ -224,5 +271,24 @@ class olympiaClient(discord.Client):
             json.dump(mailedTo, f)
             f.close()
 
-
-            
+    """
+    def mailAbsentees(self, absenteeList):
+        service = build('gmail', 'v1', credentials=self.gCreds)
+        sent = open("sentto.json", 'r')
+        mailedTo = json.load(sent)
+        sent.close()
+        for a in absenteeList:
+            if a[1] in mailedTo["email"]:
+                continue
+            mailedTo["email"].append(a[1])
+            message = MIMEText("Hi, " + a[0] + ", we're so glad you are planning to attend ACM Olympics. Before the events begin, make sure to join the ACM official Discord server. To partcipate we need you to join using this link " + self.tokens["INVITE"] +". Please do so now, if you haven't already. \nAll information about ACM Olympics will be posted to the \"Olympics\" channel in that Discord. \n\n You have been placed on the {} Team! Introduce yourself in the channel for your team color when you get the chance \n We can't wait to see you at Olympics! \n\n Sincerely, \n  The ACM Events Team")
+            message['Subject'] = "Welcome to ACM Olympics! <PLEASE READ>"
+            print(a[1])
+            message['To'] = a[1]
+            created_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+            try:
+                message = (service.users().messages().send(userId="me", body=created_message).execute())
+            except HttpError as error:
+                print(error)
+        with open("sentto.json", 'w') as f:
+            json.dump(mailedTo, f)"""
